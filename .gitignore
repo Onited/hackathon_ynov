@@ -16,7 +16,6 @@ yarn-error.log*
 __pycache__/
 *.py[cod]
 *$py.class
-adapters/
 medical_project/mlx_data/
 datasets/dataset_v0.json
 
