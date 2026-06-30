@@ -18,26 +18,7 @@ services:
       - ./ollama_server:/ollama_server
     restart: always
 
-  # Bonus Triton
-  triton:
-    build: 
-      context: ./tritton_server
-    container_name: techcorp-triton
-    ports:
-      - "8000:8000"
-      - "8001:8001"
-      - "8002:8002"
-    volumes:
-      - ./model_repository:/models
-    command: tritonserver --model-repository=/models
-    # Décommentez les lignes ci-dessous si vous avez un GPU NVIDIA
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+
 
 volumes:
   ollama_data:
