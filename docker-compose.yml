@@ -1,0 +1,43 @@
+services:
+  frontend:
+    build:
+      context: ./rendu/devweb
+    container_name: techcorp-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: techcorp-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./ollama_server:/ollama_server
+    restart: always
+
+  # Bonus Triton
+  triton:
+    build: 
+      context: ./tritton_server
+    container_name: techcorp-triton
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+    volumes:
+      - ./model_repository:/models
+    command: tritonserver --model-repository=/models
+    # Décommentez les lignes ci-dessous si vous avez un GPU NVIDIA
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  ollama_data:
