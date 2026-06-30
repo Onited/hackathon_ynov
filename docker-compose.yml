@@ -6,7 +6,10 @@ services:
     ports:
       - "5173:5173"
     depends_on:
-      - ollama
+      init-ollama:
+        condition: service_completed_successfully
+      ollama:
+        condition: service_healthy
 
   ollama:
     image: ollama/ollama:latest
@@ -17,20 +20,31 @@ services:
       - ollama_data:/root/.ollama
       - ./ollama_server:/ollama_server
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   init-ollama:
     image: ollama/ollama:latest
     container_name: techcorp-ollama-init
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
     volumes:
+      - ollama_data:/root/.ollama
       - ./ollama_server:/ollama_server
     environment:
       - OLLAMA_HOST=ollama:11434
+    restart: on-failure
     command: >
       sh -c "
-      echo 'Patientez pendant que Ollama télécharge le modèle Phi-3.5...' &&
-      sleep 5 &&
+      echo 'Waiting for Ollama to be ready...' &&
+      until curl -s http://ollama:11434/api/tags > /dev/null; do sleep 2; done &&
+      echo 'Ollama is ready. Pulling Phi-3.5 base model...' &&
+      ollama pull phi3.5 &&
+      echo 'Creating phi3-financial model from Modelfile...' &&
       ollama create phi3-financial -f /ollama_server/Modelfile &&
       echo 'Le modèle phi3-financial est prêt pour TechCorp !'
       "
