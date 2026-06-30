@@ -21,10 +21,11 @@ services:
       - ./ollama_server:/ollama_server
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      test: ["CMD-SHELL", "ollama list > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   init-ollama:
     image: ollama/ollama:latest
@@ -38,16 +39,8 @@ services:
     environment:
       - OLLAMA_HOST=ollama:11434
     restart: on-failure
-    command: >
-      sh -c "
-      echo 'Waiting for Ollama to be ready...' &&
-      until curl -s http://ollama:11434/api/tags > /dev/null; do sleep 2; done &&
-      echo 'Ollama is ready. Pulling Phi-3.5 base model...' &&
-      ollama pull phi3.5 &&
-      echo 'Creating phi3-financial model from Modelfile...' &&
-      ollama create phi3-financial -f /ollama_server/Modelfile &&
-      echo 'Le modèle phi3-financial est prêt pour TechCorp !'
-      "
+    entrypoint: ["/bin/sh"]
+    command: ["-c", "ollama pull phi3.5 && ollama create phi3-financial -f /ollama_server/Modelfile"]
 
 volumes:
   ollama_data:
