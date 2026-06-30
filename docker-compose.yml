@@ -18,7 +18,22 @@ services:
       - ./ollama_server:/ollama_server
     restart: always
 
-
+  init-ollama:
+    image: ollama/ollama:latest
+    container_name: techcorp-ollama-init
+    depends_on:
+      - ollama
+    volumes:
+      - ./ollama_server:/ollama_server
+    environment:
+      - OLLAMA_HOST=ollama:11434
+    command: >
+      sh -c "
+      echo 'Patientez pendant que Ollama télécharge le modèle Phi-3.5...' &&
+      sleep 5 &&
+      ollama create phi3-financial -f /ollama_server/Modelfile &&
+      echo 'Le modèle phi3-financial est prêt pour TechCorp !'
+      "
 
 volumes:
   ollama_data:
